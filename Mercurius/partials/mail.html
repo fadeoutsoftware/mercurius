@@ -1,0 +1,15 @@
+<form name="myForm" class="formdesign">
+    <div>
+        <input name="address" ng-model="m_oController.m_sAddress" type="text" placeholder="To" autocomplete=off required/>
+        <span ng-show="myForm.address.$error.required">How can I send to anyone?</span>
+    </div>
+    <div>
+        <input name="title" ng-model="m_oController.getMessage().title" autocomplete=off type="text" placeholder="Subject"/>
+    </div>
+    <div>
+        <textarea rows="5" name="message" ng-model="m_oController.getMessage().message" autocomplete=off placeholder="Message" required/>
+        <span ng-show="myForm.message.$error.required">A mail should have some text. Right?</span>
+    </div>
+    <button ng-click="m_oController.send()" ng-disabled="isClean() || myForm.$invalid" class="btn">Send</button>
+</form>
+<button ng-click="m_oController.cancel()" class="btn btn-danger btn-left">Cancel</button>

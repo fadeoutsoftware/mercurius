@@ -1,0 +1,13 @@
+<div class="col1">
+    <h2>{{m_oController.getContact().name}}</h2>
+    <img src="img/profile_image.png" alt="">
+</div>
+<div class="col2">
+    <p class="email" style="cursor: pointer" ng-show="m_oController.getContact().email" ng-click="m_oController.sendEMail()">{{m_oController.getContact().email}}</p>
+
+    <p class="phone" style="cursor: pointer" ng-show="m_oController.getContact().phone" ng-click="m_oController.sendSms()">{{m_oController.getContact().phone}}</p>
+</div>
+<hr/>
+<hr/>
+<a class="btn btn-left back" href="#/">Go Back</a>
+<a class="btn " href="#/edit/{{m_oController.getContact().id}}">Edit</a>
