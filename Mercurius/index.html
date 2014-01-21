@@ -9,9 +9,11 @@
 
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <link rel="icon" href="favicon.png" />
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,400,300,600,700' rel='stylesheet'>
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/main.css">
+
 </head>
 <body>
 <!--[if lt IE 7]>
@@ -32,13 +34,13 @@
         <input type="search" id="searchBox" placeholder='Who?' autocomplete="off" ng-model="search"/>
         <ul id="searchResults" ng-show="search.length && (m_oController.getFlatContacts() | regex:'name':' +'+search+'|^'+search).length">
             <li ng-repeat="contact in m_oController.getFlatContacts() | regex:'name':' +'+search+'|^'+search | orderBy:'name' | limitTo:6"><a
-                    href="#/view/{{contact.id}}">{{contact.name}}</a></li>
+                    ui-sref="contactsview({id:contact.id})">{{contact.name}}</a></li>
         </ul>
         <p ng-show="(search.length>2) && !(m_oController.getFlatContacts() | regex:'name':' +'+search+'|^'+search).length">
             A contact named <strong>{{search}}</strong> is not found.
         </p>
 
-        <div class="loader" ng-show="(search.length<3) && !(contacts | regex:'name':' +'+search+'|^'+search).length"></div>
+        <div class="loader" ng-show="(search.length<3) && !(m_oController.getFlatContacts() | regex:'name':' +'+search+'|^'+search).length"></div>
         <div class="clearfix"></div>
     </div>
     <hr/>
@@ -46,12 +48,14 @@
     <div id="contactsList" class="listContainer" ng-controller="ContactsListController" ><!--ng-init="oController.fetchContacts()"-->
         <dl ng-repeat="contactList in oController.getContactsService().getContacts()">
             <dt>{{contactList.name}}</dt>
-            <dd ng-repeat="contact in contactList.contactListItems"><a class="cnt" href="#/view/{{contact.id}}">{{contact.name}}</a></dd>
+            <!--dd ng-repeat="contact in contactList.contactListItems"><a class="cnt" href="#/view/{{contact.id}}">{{contact.name}}</a></dd-->
+            <dd ng-repeat="contact in contactList.contactListItems"><a class="cnt" ui-sref="contactsview({id:contact.id})">{{contact.name}}</a></dd>
         </dl>
     </div>
 
     <div id="rightViewContainer">
-        <div ng-view></div>
+        <!--div ng-view></div-->
+        <div ui-view></div>
     </div>
 </div>
 <!-- In production use:
@@ -62,9 +66,13 @@
 <script src="lib/angular/angular.js"></script>
 <script src="lib/angular/angular-route.js"></script>
 <script src="lib/angular-ui-router.js"></script>
+<script src="http://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.10.0.js"></script>
+<script src="lib/angular-ui-router.js"></script>
+<script src="js/services/UserService.js"></script>
 <script src="js/services/ContactsService.js"></script>
 <script src="js/services/SmsService.js"></script>
 <script src="js/services/MailService.js"></script>
+<script src="js/controllers/LoginController.js"></script>
 <script src="js/controllers/ContactsAddController.js"></script>
 <script src="js/controllers/ContactsEditController.js"></script>
 <script src="js/controllers/ContactsListController.js"></script>

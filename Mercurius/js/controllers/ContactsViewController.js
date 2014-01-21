@@ -4,14 +4,14 @@
 
 var ContactsViewController = (function () {
 
-    function ContactsViewController($scope, $routeParams, $location, oContactsService) {
+    function ContactsViewController($scope,  $stateParams, $location, oContactsService) {
         this.m_oScope = $scope;
         this.m_oScope.m_oController = this;
         this.m_oLocation = $location;
 
         var oScope = this.m_oScope;
 
-        oContactsService.getContact($routeParams.id)
+        oContactsService.getContact( $stateParams.id)
             .success(function(data,status) {
                 oScope.m_oController.m_oContact = data;
             })
@@ -35,7 +35,7 @@ var ContactsViewController = (function () {
 
     ContactsViewController.$inject = [
         '$scope',
-        '$routeParams',
+        '$stateParams',
         '$location',
         'ContactsService'
     ];

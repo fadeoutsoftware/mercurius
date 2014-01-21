@@ -1,0 +1,23 @@
+<div> <!-- ng-controller="LoginController" -->
+    <div class="modal-header">
+        <h3>Mercurius Login</h3>
+    </div>
+    <div class="modal-body">
+        <form name="loginForm" >
+            <div  class="form-group">
+                <label for="username">User Id</label>
+                <input name="username" id="username" ng-model="m_oController.m_sUserName" type="text" placeholder="UserId" autocomplete=off required class="form-control"/>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input name="password" id = "password" ng-model="m_oController.m_sPassword" autocomplete=off type="password" placeholder="Password" class="form-control"/>
+            </div>
+            <div class="form-group">
+                <button ng-click="m_oController.login()" ng-disabled="isClean() || loginForm.$invalid" class="btn btn-default">Login</button>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <h4>Please give your credentials to access Mercusius</h4>
+    </div>
+</div>

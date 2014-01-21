@@ -3,11 +3,11 @@
  */
 
 var SmsController =  (function() {
-    function SmsController($scope, $routeParams, $location, ContactsService,SmsService) {
+    function SmsController($scope, $stateParams, $location, ContactsService,SmsService) {
         this.m_oScope = $scope;
         this.m_oScope.m_oController = this;
         this.m_oLocation = $location;
-        this.m_iContactId = $routeParams.id;
+        this.m_iContactId = $stateParams.id;
         this.m_oMessage = {};
         this.m_sAddress="";
         this.SmsService = SmsService;
@@ -51,7 +51,7 @@ var SmsController =  (function() {
 
     SmsController.$inject = [
         '$scope',
-        '$routeParams',
+        '$stateParams',
         '$location',
         'ContactsService',
         'SmsService'

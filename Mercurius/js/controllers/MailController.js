@@ -3,11 +3,11 @@
  */
 
 var MailController = ( function() {
-    function MailController($scope, $routeParams, $location, ContactsService, MailService) {
+    function MailController($scope, $stateParams, $location, ContactsService, MailService) {
         this.m_oScope = $scope;
         this.m_oScope.m_oController = this;
         this.m_oLocation = $location;
-        this.m_iContactId = $routeParams.id;
+        this.m_iContactId = $stateParams.id;
         this.m_oMessage = {};
         this.m_sAddress = "";
         this.MailService = MailService;
@@ -51,7 +51,7 @@ var MailController = ( function() {
 
     MailController.$inject = [
         '$scope',
-        '$routeParams',
+        '$stateParams',
         '$location',
         'ContactsService',
         'MailService'

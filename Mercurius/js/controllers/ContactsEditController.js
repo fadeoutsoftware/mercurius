@@ -4,10 +4,9 @@
 
 var ContactsEditController = (function () {
 
-    function ContactsEditController($scope, $routeParams, $location, $http, oContactsService) {
+    function ContactsEditController($scope, $stateParams, $location, $http, oContactsService) {
         this.m_oScope = $scope;
         this.m_oScope.m_oController = this;
-        this.APIURL = 'http://130.251.104.84:8080/it.fadeout.mercurius.webapi/rest';
         this.m_oContact = null;
         this.m_oLocation = $location;
         this.m_oHttp = $http;
@@ -15,7 +14,7 @@ var ContactsEditController = (function () {
 
         var oScope = this.m_oScope;
 
-        oContactsService.getContact($routeParams.id)
+        oContactsService.getContact($stateParams.id)
             .success(function(data,status) {
                 oScope.m_oController.m_oContact = data;
             })
@@ -61,7 +60,7 @@ var ContactsEditController = (function () {
 
     ContactsEditController.$inject = [
         '$scope',
-        '$routeParams',
+        '$stateParams',
         '$location',
         '$http',
         'ContactsService'

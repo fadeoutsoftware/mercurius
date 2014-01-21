@@ -4,19 +4,22 @@
 
 'use strict';
 angular.module('mercurius.contactsServiceModule', []).
-    service('ContactsService', ['$http',  function ($http) {
+    service('ContactsService', ['$http', 'UserService',  function ($http, UserService) {
         //this.APIURL = 'http://130.251.104.84:8080/it.fadeout.mercurius.webapi/rest';
         this.APIURL = 'http://localhost:8080/it.fadeout.mercurius.webapi/rest';
 
         this.m_oHttp = $http;
         this.m_aoContacts = [];
         this.m_aoFlatContacts = [];
+        this.m_oUserService = UserService;
 
         this.fetchContacts = function() {
 
             var oServiceVar = this;
 
             oServiceVar.m_aoFlatContacts = [];
+
+            if (this.m_oUserService.isLogged() == false) return;
 
             this.m_oHttp({method:'GET',url : this.APIURL +'/uicontacts/orderedall'})
                 .success(function(data,status) {
