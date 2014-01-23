@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="it/fadeout/mercurius/daemon/SmsUtils/impl/SmsUtilCardBoardFish.java|it/fadeout/mercurius/daemon/SmsUtils/impl/SmsUtilsComuneGenova.java|it/fadeout/mercurius/daemon/SmsUtils/impl/SmsUtilsMobyt.java" kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="lib" path="lib/mail.jar"/>
+	<classpathentry kind="lib" path="lib/axis.jar"/>
+	<classpathentry kind="lib" path="lib/commons-discovery-0.2.jar"/>
+	<classpathentry kind="lib" path="lib/commons-net-3.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-net-3.3.jar"/>
+	<classpathentry kind="lib" path="lib/javax.wsdl_1.6.2.v201005080631.jar"/>
+	<classpathentry kind="lib" path="lib/jaxrpc.jar"/>
+	<classpathentry kind="lib" path="lib/jdom.jar"/>
+	<classpathentry kind="lib" path="lib/jsmpp-2.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="lib/org.apache.commons.logging_1.0.4.v201005080501.jar"/>
+	<classpathentry kind="lib" path="lib/pop3.jar"/>
+	<classpathentry kind="lib" path="lib/postgresql-9.1-902.jdbc4.jar"/>
+	<classpathentry kind="lib" path="lib/RXTXcomm.jar"/>
+	<classpathentry kind="lib" path="lib/saaj.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.6.3.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-log4j12-1.6.3.jar"/>
+	<classpathentry kind="lib" path="lib/smtp.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/it.fadeout.mercurius.business"/>
+	<classpathentry kind="lib" path="lib/smsserver-3.5.4.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
