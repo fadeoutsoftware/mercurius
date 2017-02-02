@@ -9,4 +9,5 @@ public interface ISmsUtil {
 	public boolean initializeSMS(HashMap<String, Object> aoParams);
 	public boolean initializeSMS(String sConfigFile);
 	public boolean sendSMS(List<Forward> aoSmsList);
+	public boolean sendDirectSMS(String sNumber, String sMessage);
 }

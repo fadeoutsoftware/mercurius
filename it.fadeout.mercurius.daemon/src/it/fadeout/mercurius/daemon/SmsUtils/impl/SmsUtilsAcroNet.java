@@ -343,4 +343,10 @@ public class SmsUtilsAcroNet implements ISmsUtil{
 		
 		return "";
     }
+
+	@Override
+	public boolean sendDirectSMS(String sNumber, String sMessage) {
+		
+		return sendSms(sNumber, sMessage);
+	}
 }

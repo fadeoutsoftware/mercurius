@@ -65,7 +65,7 @@ public class MailResource {
 	@Produces({"application/xml", "application/json", "text/xml"})	
 	@Consumes({"application/xml", "application/json", "text/xml"})
 	@Path("/group/{idgroup}")
-	public PrimitiveResult sendToGroup(@Context HttpServletResponse oResponse, Message oMessage, @PathParam("idgroup") int idGroup) {
+	public PrimitiveResult sendToGroup(@Context HttpServletResponse oResponse, Message oMessage, @PathParam("idgroup") int idGroup, @HeaderParam("x-mercurius-sender") String sSender) {
 		
 		// Result preparation
 		PrimitiveResult oResult = new PrimitiveResult();
@@ -102,6 +102,11 @@ public class MailResource {
 			oMessage.getForwards().add(oForward);
 		}
 		
+		if (sSender != null)
+		{
+			oMessage.setSender(sSender);
+		}
+		
 		// Save the message
 		oMessageRepository.Save(oMessage);
 		int iIdMessage = oMessage.getIdMessage();
@@ -124,7 +129,7 @@ public class MailResource {
 	@Produces({"application/xml", "application/json", "text/xml"})	
 	@Consumes({"application/xml", "application/json", "text/xml"})
 	@Path("/contacts")
-	public PrimitiveResult sendToContacts(@Context HttpServletResponse oResponse, Message oMessage, @DefaultValue("") @QueryParam("contactsids") String sContactsIds) {
+	public PrimitiveResult sendToContacts(@Context HttpServletResponse oResponse, Message oMessage, @DefaultValue("") @QueryParam("contactsids") String sContactsIds, @HeaderParam("x-mercurius-sender") String sSender) {
 		// Prepare result
 		PrimitiveResult oResult = new PrimitiveResult();
 		oResult.IntValue = -1;
@@ -189,6 +194,11 @@ public class MailResource {
 			oMessage.getForwards().add(oForward);
 		}
 		
+		if (sSender != null)
+		{
+			oMessage.setSender(sSender);
+		}
+		
 		// Save the message
 		oMessageRepository.Save(oMessage);
 		// get the id
@@ -212,54 +222,70 @@ public class MailResource {
 	@Produces({"application/xml", "application/json", "text/xml"})	
 	@Consumes({"application/xml", "application/json", "text/xml"})
 	@Path("/direct")
-	public PrimitiveResult sendToNumbers(@Context HttpServletResponse oResponse, Message oMessage, @DefaultValue("") @QueryParam("addresses") String sNumbers) {
+	public PrimitiveResult sendToNumbers(@Context HttpServletResponse oResponse, Message oMessage, @DefaultValue("") @QueryParam("addresses") String sNumbers,  @HeaderParam("x-mercurius-sender") String sSender) {
 		// Prepare result
 		PrimitiveResult oResult = new PrimitiveResult();
-		oResult.IntValue = -1;
-		
-		// Is there a valid message?
-		if (oMessage == null) return oResult;
-		
-		// Is there a valid recipient list?
-		if (sNumbers == null) return oResult;
-		if (sNumbers.length() == 0) return oResult;
-		
-		// Split numbers
-		String [] asContacts = sNumbers.split(";");
-		
-		// Is there any one?
-		if (asContacts == null) return oResult;
-		if (asContacts.length == 0) return oResult;
-		
-		// Create rep
-		MessagesRepository oMessageRepository = new MessagesRepository();
-		
-		oMessage.setCreationDate(new Date());
-		
-		// Get text
-		String sFinalText = getFinalMessage(oMessage);
-		
-		// Foreach contact
-		for (String sContact : asContacts) {
-			// create forward
-			Forward oForward = new Forward();
-			oForward.setAddress(sContact);
-			oForward.setFinalText(sFinalText);
-			oForward.setMedia("EMAIL");
-			oForward.setScheduledOn(oMessage.getCreationDate());
-			oMessage.getForwards().add(oForward);
+		oResult.IntValue = -1;		
+		try {
+			
+			System.out.println("Mercurius Send Direct Mail ");
+			
+			// Is there a valid message?
+			if (oMessage == null) return oResult;
+			
+			// Is there a valid recipient list?
+			if (sNumbers == null) return oResult;
+			if (sNumbers.length() == 0) return oResult;
+			
+			// Split numbers
+			String [] asContacts = sNumbers.split(";");
+			
+			// Is there any one?
+			if (asContacts == null) return oResult;
+			if (asContacts.length == 0) return oResult;
+			
+			// Create rep
+			MessagesRepository oMessageRepository = new MessagesRepository();
+			
+			oMessage.setCreationDate(new Date());
+			
+			// Get text
+			String sFinalText = getFinalMessage(oMessage);
+			
+			// Foreach contact
+			for (String sContact : asContacts) {
+				// create forward
+				Forward oForward = new Forward();
+				oForward.setAddress(sContact);
+				oForward.setFinalText(sFinalText);
+				oForward.setMedia("EMAIL");
+				oForward.setScheduledOn(oMessage.getCreationDate());
+				oMessage.getForwards().add(oForward);
+			}
+			
+			if (sSender != null)
+			{
+				oMessage.setSender(sSender);
+			}
+			
+			// save message
+			oMessageRepository.Save(oMessage);
+			// Get message id
+			int iIdMessage = oMessage.getIdMessage();
+			oResult.IntValue = iIdMessage;
+			
+			oResponse.addHeader("Access-Control-Allow-Origin", "*");
+			oResponse.addHeader("Access-Control-Allow-Methods", "GET");		
+			// return it to the user
+			return oResult;
+			
 		}
-		
-		// save message
-		oMessageRepository.Save(oMessage);
-		// Get message id
-		int iIdMessage = oMessage.getIdMessage();
-		oResult.IntValue = iIdMessage;
-		
-		oResponse.addHeader("Access-Control-Allow-Origin", "*");
-		oResponse.addHeader("Access-Control-Allow-Methods", "GET");		
-		// return it to the user
-		return oResult;
+		catch(Exception oEx)
+		{
+			oEx.printStackTrace();
+			
+			return oResult;
+		}
 	}		
 
 	private String m_sCorsHeaders;

@@ -21,25 +21,36 @@ public class MercuriusHAL {
 	
 	static ISmsUtil s_oSmsUtils = null;
 	
+	static Object s_oSmsLock = new Object();
+	static Object s_oMailLock = new Object();
+	
 	public static void setSmsUtils(ISmsUtil oSmsUtil) {
 		s_oSmsUtils = oSmsUtil;
 	}
 
 	public static void initializeEmails(String sSmptAddress, String sSmtpPort, String sSmptUser, String sSmptPwd, String sSmtpSender) {
-		EMailUtils.initialize(sSmptAddress, sSmtpPort, sSmptUser, sSmptPwd, sSmtpSender);
+		synchronized (s_oMailLock) {
+			EMailUtils.initialize(sSmptAddress, sSmtpPort, sSmptUser, sSmptPwd, sSmtpSender);
+		}
+		
 	}
 	
 	public static void initializeEmails(EMailUtilsConfig oConfig) {
-		EMailUtils.initialize(oConfig);
+		synchronized (s_oMailLock) {
+			EMailUtils.initialize(oConfig);
+		}
 	}
 
 	public static void initializeSms(String sConfigFile) {
-		s_oSmsUtils.initializeSMS(sConfigFile);
+		synchronized (s_oSmsLock) {
+			s_oSmsUtils.initializeSMS(sConfigFile);
+		}
 	}
 	
 	public static void initializeSms(HashMap<String, Object> aoParams) {
-		
-		s_oSmsUtils.initializeSMS(aoParams);
+		synchronized (s_oSmsLock) {
+			s_oSmsUtils.initializeSMS(aoParams);
+		}
 	}
 
 
@@ -54,12 +65,26 @@ public class MercuriusHAL {
 	 * @throws MessagingException 
 	 */
 	public static boolean sendMail(String sTo, String sSubject, String sBody, String[] asAttachments) throws MessagingException {
-		String[] asTo = new String[1];
-		asTo[0] = sTo;
-		return EMailUtils.SendMessage(asTo, sSubject, sBody, asAttachments);
+		
+		synchronized (s_oMailLock) {
+			String[] asTo = new String[1];
+			asTo[0] = sTo;
+			
+			EMailUtils.UseHtmlMail = true;
+			
+			return EMailUtils.SendMessage(asTo, sSubject, sBody, asAttachments);			
+		}
+	}
+	
+	
+	public static boolean sendMail(String []asTo, String sSubject, String sBody, String[] asAttachments) throws MessagingException {
+		
+		synchronized (s_oSmsLock) {
+			EMailUtils.UseHtmlMail = true;
+			return EMailUtils.SendMessage(asTo, sSubject, sBody, asAttachments);
+		}		
 	}
 
-	
 	/**
 	 * 
 	 * @param aSmsList
@@ -70,5 +95,10 @@ public class MercuriusHAL {
 	public static boolean sendSMS(List<Forward> aSmsList) throws RemoteException, ServiceException {
 		return s_oSmsUtils.sendSMS(aSmsList);
 	}
+	
+
+	public static boolean sendDirectSMS(String sNumber, String sMessage) {
+		return s_oSmsUtils.sendDirectSMS(sNumber, sMessage);
+	}	
 	
 }

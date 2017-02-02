@@ -15,12 +15,12 @@
 	<classpathentry kind="lib" path="lib/org.apache.commons.logging_1.0.4.v201005080501.jar"/>
 	<classpathentry kind="lib" path="lib/pop3.jar"/>
 	<classpathentry kind="lib" path="lib/postgresql-9.1-902.jdbc4.jar"/>
-	<classpathentry kind="lib" path="lib/RXTXcomm.jar"/>
 	<classpathentry kind="lib" path="lib/saaj.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.6.3.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-log4j12-1.6.3.jar"/>
 	<classpathentry kind="lib" path="lib/smtp.jar"/>
+	<classpathentry kind="lib" path="lib/smslib-3.5.3.jar"/>
+	<classpathentry kind="lib" path="lib/RXTXcomm.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/it.fadeout.mercurius.business"/>
-	<classpathentry kind="lib" path="lib/smsserver-3.5.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

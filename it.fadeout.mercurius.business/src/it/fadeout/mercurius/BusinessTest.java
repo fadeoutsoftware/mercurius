@@ -20,9 +20,9 @@ public class BusinessTest {
 	public static void main(String[] args) {
 		
 		BusinessTest oTest = new BusinessTest();
-		//oTest.TestContacts();
+		oTest.TestContacts();
 		//oTest.TestGroups();
-		oTest.TestMessages();
+		//oTest.TestMessages();
 	}
 	
 	public void TestContacts() {

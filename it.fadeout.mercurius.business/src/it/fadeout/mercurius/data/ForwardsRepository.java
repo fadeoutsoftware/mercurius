@@ -36,7 +36,13 @@ public class ForwardsRepository extends Repository<Forward> {
 		return aoList;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public List<Forward> GetMailToSend() {
+		return GetMailToSend(3);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<Forward> GetMailToSend(int iRetryCount) {
 		Session oSession = null;
 		
 		List<Forward> aoList = new ArrayList<Forward>();
@@ -44,8 +50,10 @@ public class ForwardsRepository extends Repository<Forward> {
 		try {
 			oSession = HibernateUtils.getSessionFactory().openSession();
 			oSession.beginTransaction();
-			Query oQuery = oSession.createQuery("from Forward where ScheduledOn <= :scheduled and media = 'EMAIL' and IsSent = false");
-			oQuery.setParameter("scheduled", new Date());
+			Query oQuery = oSession.createQuery("from Forward where ScheduledOn <= :scheduled and media = 'EMAIL' and IsSent = false and retrycount < :retry");
+			Date oDate = new Date();
+			oQuery.setParameter("scheduled", oDate);
+			oQuery.setParameter("retry", iRetryCount);
 			aoList = oQuery.list();
 			oSession.getTransaction().commit();			
 		}

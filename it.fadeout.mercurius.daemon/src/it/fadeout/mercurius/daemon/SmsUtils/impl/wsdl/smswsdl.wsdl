@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://wssms.comune.genova.it/WSSms/WSSms.jws" xmlns:apachesoap="http://xml.apache.org/xml-soap" xmlns:impl="http://wssms.comune.genova.it/WSSms/WSSms.jws" xmlns:intf="http://wssms.comune.genova.it/WSSms/WSSms.jws" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<!--WSDL created by Apache Axis version: 1.4
+Built on Apr 22, 2006 (06:55:48 PDT)-->
+
+   <wsdl:message name="wsSetPasswordSmsRequest">
+
+      <wsdl:part name="sXmlFile" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="wsCancellaLottoSmsResponse">
+
+      <wsdl:part name="wsCancellaLottoSmsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="wsCancellaSmsResponse">
+
+      <wsdl:part name="wsCancellaSmsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="wsGetInfoLottoSmsResponse">
+
+      <wsdl:part name="wsGetInfoLottoSmsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="wsSetPasswordSmsResponse">
+
+      <wsdl:part name="wsSetPasswordSmsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="wsCancellaLottoSmsRequest">
+
+      <wsdl:part name="sXmlFile" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="wsCancellaSmsRequest">
+
+      <wsdl:part name="sXmlFile" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="wsSetInvioSmsResponse">
+
+      <wsdl:part name="wsSetInvioSmsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="wsGetInfoLottoSmsRequest">
+
+      <wsdl:part name="sXmlFile" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="wsSetInvioSmsRequest">
+
+      <wsdl:part name="sXmlFile" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:portType name="WSSms">
+
+      <wsdl:operation name="wsCancellaSms" parameterOrder="sXmlFile">
+
+         <wsdl:input message="impl:wsCancellaSmsRequest" name="wsCancellaSmsRequest"/>
+
+         <wsdl:output message="impl:wsCancellaSmsResponse" name="wsCancellaSmsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="wsCancellaLottoSms" parameterOrder="sXmlFile">
+
+         <wsdl:input message="impl:wsCancellaLottoSmsRequest" name="wsCancellaLottoSmsRequest"/>
+
+         <wsdl:output message="impl:wsCancellaLottoSmsResponse" name="wsCancellaLottoSmsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="wsGetInfoLottoSms" parameterOrder="sXmlFile">
+
+         <wsdl:input message="impl:wsGetInfoLottoSmsRequest" name="wsGetInfoLottoSmsRequest"/>
+
+         <wsdl:output message="impl:wsGetInfoLottoSmsResponse" name="wsGetInfoLottoSmsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="wsSetPasswordSms" parameterOrder="sXmlFile">
+
+         <wsdl:input message="impl:wsSetPasswordSmsRequest" name="wsSetPasswordSmsRequest"/>
+
+         <wsdl:output message="impl:wsSetPasswordSmsResponse" name="wsSetPasswordSmsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="wsSetInvioSms" parameterOrder="sXmlFile">
+
+         <wsdl:input message="impl:wsSetInvioSmsRequest" name="wsSetInvioSmsRequest"/>
+
+         <wsdl:output message="impl:wsSetInvioSmsResponse" name="wsSetInvioSmsResponse"/>
+
+      </wsdl:operation>
+
+   </wsdl:portType>
+
+   <wsdl:binding name="WSSmsSoapBinding" type="impl:WSSms">
+
+      <wsdlsoap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+      <wsdl:operation name="wsCancellaSms">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="wsCancellaSmsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://DefaultNamespace" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="wsCancellaSmsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://wssms.comune.genova.it/WSSms/WSSms.jws" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="wsCancellaLottoSms">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="wsCancellaLottoSmsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://DefaultNamespace" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="wsCancellaLottoSmsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://wssms.comune.genova.it/WSSms/WSSms.jws" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="wsGetInfoLottoSms">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="wsGetInfoLottoSmsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://DefaultNamespace" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="wsGetInfoLottoSmsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://wssms.comune.genova.it/WSSms/WSSms.jws" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="wsSetPasswordSms">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="wsSetPasswordSmsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://DefaultNamespace" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="wsSetPasswordSmsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://wssms.comune.genova.it/WSSms/WSSms.jws" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="wsSetInvioSms">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="wsSetInvioSmsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://DefaultNamespace" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="wsSetInvioSmsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://wssms.comune.genova.it/WSSms/WSSms.jws" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+   </wsdl:binding>
+
+   <wsdl:service name="WSSmsService">
+
+      <wsdl:port binding="impl:WSSmsSoapBinding" name="WSSms">
+
+         <wsdlsoap:address location="http://wssms.comune.genova.it/WSSms/WSSms.jws"/>
+
+      </wsdl:port>
+
+   </wsdl:service>
+
+</wsdl:definitions>

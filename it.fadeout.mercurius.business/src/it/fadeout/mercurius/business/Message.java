@@ -36,6 +36,9 @@ public class Message {
 	@Column(name="message")
 	String Message;
 	
+	@Column(name="sender")
+	String Sender;
+	
 	@Column(name="creationdate")
 	Date CreationDate;
 	
@@ -81,5 +84,13 @@ public class Message {
 
 	public void setForwards(Set<Forward> forwards) {
 		this.forwards = forwards;
+	}
+	
+	public String getSender() {
+		return Sender;
+	}
+
+	public void setSender(String sender) {
+		Sender = sender;
 	}
 }

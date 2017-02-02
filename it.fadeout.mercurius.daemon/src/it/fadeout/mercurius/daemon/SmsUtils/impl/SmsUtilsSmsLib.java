@@ -225,4 +225,32 @@ public class SmsUtilsSmsLib implements ISmsUtil{
 			return false;
 		}
 	}
+
+	@Override
+	public boolean sendDirectSMS(String sNumber, String sMessage) {
+		
+		boolean bRet = false;
+		try {
+			System.out.println("SmsUtilsSmsLib.sendDirectSMS.startService");
+			
+			Service.getInstance().startService();
+			OutboundMessage oMessage = new OutboundMessage(sNumber, sMessage);
+			bRet = Service.getInstance().sendMessage(oMessage);
+		}
+		catch(Exception oEx)
+		{
+			System.out.println(oEx.toString());
+		}
+		finally {
+			try {
+				Service.getInstance().stopService();
+			}
+			catch (Exception oEx)
+			{
+				System.out.println("SmsUtilsSmsLib.sendDirectSMS.stopService: " + oEx.getMessage());
+			}
+			
+		}
+		return bRet;
+	}
 }

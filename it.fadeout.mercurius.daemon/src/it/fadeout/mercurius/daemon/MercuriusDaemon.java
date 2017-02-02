@@ -1,14 +1,13 @@
 package it.fadeout.mercurius.daemon;
 
 import it.fadeout.mercurius.business.Forward;
-import it.fadeout.mercurius.business.Message;
+import it.fadeout.mercurius.daemon.EMailUtils.EMailUtils;
 import it.fadeout.mercurius.daemon.EMailUtils.EMailUtilsConfig;
 import it.fadeout.mercurius.daemon.SmsUtils.ISmsUtil;
 import it.fadeout.mercurius.daemon.SmsUtils.SMSReader;
 import it.fadeout.mercurius.daemon.SmsUtils.impl.SmsUtilsAcroNet;
 import it.fadeout.mercurius.daemon.business.ExternalDbSetting;
 import it.fadeout.mercurius.data.ForwardsRepository;
-import it.fadeout.mercurius.data.MessagesRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,8 +20,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.TimeZone;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import javax.mail.MessagingException;
 import javax.xml.rpc.ServiceException;
@@ -39,19 +39,29 @@ public class MercuriusDaemon {
 	private static int s_iPollingTime = 5;
 	
 	private static String s_SmsMailReceiver;
+	
+	private static String s_SmsTestReceiver;
 
 	private static int s_iRetry = 3;
+	
+	private static int s_iEnableSms = 1;
+	private static int s_iEnableMail = 1;
 	
 	private static String m_sSMSUtilsClass = "it.fadeout.nie.SmsUtils.impl.SmsUtilsComuneGenova";
 	
 	private static SMSReader s_oReader;
 	
 	public static ArrayList<ExternalDbSetting> s_aoExternalDbSettings = new ArrayList<ExternalDbSetting>();
+	
+	public static Semaphore s_oMailSemaphore = new Semaphore(1); 
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		
+		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+		System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyS0");
 			
 		// Domain Control
 		if (args == null) {
@@ -78,7 +88,7 @@ public class MercuriusDaemon {
 		System.out.println("Initializing Mailing System");
 		EMailUtilsConfig oEmailConfig = new EMailUtilsConfig();
 		oEmailConfig.initEMailConfigByXmlFile(sConfigFilePath);
-		System.out.println("Mmail initialized");
+		System.out.println("Mail initialized");
 
 		// Init Sms
 		System.out.println("Initializing sms System");
@@ -101,32 +111,75 @@ public class MercuriusDaemon {
 		
 		// Init HAL
 		MercuriusHAL.setSmsUtils(oSmsUtil);
-		MercuriusHAL.initializeEmails(oEmailConfig);
-		MercuriusHAL.initializeSms(sConfigFilePath);
+		if (s_iEnableMail!=0) 
+		{
+			MercuriusHAL.initializeEmails(oEmailConfig);
 
-		System.out.println("Creating SMS Reader...");
-		s_oReader = new SMSReader();
-		s_oReader.readSmsXmlConfigFile(sConfigFilePath);
-		System.out.println("SMS Reader Created");
+			/*
+			String [] asTo = new String[2];
+			asTo[0] ="cosimo@acrotec.it";
+			asTo[1] = "p.campanella@fadeout.it";
+			try {
+				EMailUtils.SendMessage(oEmailConfig.getSmtpUser(), oEmailConfig.getSmtpPwd(), "topolino123123@paperopoli.it", asTo, "Prova", "Mail da te stesso", null);
+			} catch (MessagingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			*/
+		}
+
+		if (s_iEnableSms!=0) 
+		{
+			MercuriusHAL.initializeSms(sConfigFilePath);
+			
+			System.out.println("Creating SMS Reader...");
+			s_oReader = new SMSReader();
+			s_oReader.readSmsXmlConfigFile(sConfigFilePath);
+			System.out.println("SMS Reader Created");
+
+		}
+		
+		Date oLastDate = null;
 		
 		while (true) {
+			
+			Date oActualDate = new Date();
+			
+			if (DayChanged(oActualDate, oLastDate)) {
+				oLastDate=oActualDate;
+				DailyTask();
+			}
 
 			try {
 				
-				System.out.println("Mercurius DAEMON CYCLE: Read SMS");
-				ReadSms();
+				if (s_iEnableSms!=0) 
+				{				
+					System.out.println("Mercurius DAEMON CYCLE: Read SMS");
+					ReadSms();
+	
+					System.out.println("Mercurius DAEMON CYCLE: SendSms");
+					// Invio Sms
+					SendSms();
+				}
 
-				System.out.println("Mercurius DAEMON CYCLE: SendSms");
-				// Invio Sms
-				SendSms();
-
-				System.out.println("Mercurius DAEMON CYCLE: SendEmails");
-				// Invio Email
-				SendEmails();
-
-//				System.out.println("Mercurius DAEMON CYCLE: GetInfoSms");
-//				// Leggo lo stato delle comunicazioni
-//				GetInfoSms();
+				if (s_iEnableMail!=0)
+				{
+					System.out.println("Mercurius DAEMON CYCLE: SendEmails");
+					
+					if (s_oMailSemaphore.tryAcquire(1, TimeUnit.SECONDS))
+					{
+						try {
+							//s_oMailSemaphore.acquire();
+							MailThread oSendMail = new MailThread(s_oMailSemaphore);
+							oSendMail.run();							
+						}
+						catch(Exception oExSem)
+						{
+							System.out.println("Mercurius Daemon: eccezione nel ciclo di invio eseguito: " + oExSem.toString());
+							oExSem.printStackTrace();							
+						}
+					}
+				}
 
 			} catch (Throwable oEx) {
 				System.out.println("Mercurius Daemon: eccezione nel ciclo di invio eseguito: " + oEx.toString());
@@ -135,7 +188,7 @@ public class MercuriusDaemon {
 				try {
 					System.out.println("Mercurius DAEMON CYCLE: ciclo di invio eseguito, aspetto il prossimo ciclo");
 					
-					Thread.sleep(s_iPollingTime * 60 * 1000);
+					Thread.sleep(s_iPollingTime * 1000);
 					
 					System.out.println("Mercurius DAEMON CYCLE: START " + Calendar.getInstance().getTime().toString());
 				} catch (Throwable e) {
@@ -144,6 +197,62 @@ public class MercuriusDaemon {
 					System.out.println("Mercurius Daemon " + e.getMessage());
 				}
 			}
+		}
+	}
+	
+	
+	/**
+	 * Checks if date is changed
+	 * @param oActualDate
+	 * @param oLastDate
+	 * @return
+	 */
+	@SuppressWarnings("deprecation")
+	public static boolean DayChanged(Date oActualDate, Date oLastDate)
+	{
+		if (oLastDate==null) return true;
+		if (oActualDate.getHours()<8) return false;
+		
+		long lActualTime = oActualDate.getTime();
+		long lLastTime = oLastDate.getTime();
+		
+		long lDay = 24L*60L*60L*1000L;
+		
+		if ((lActualTime-lLastTime)>lDay) return true;
+		return false;
+	}
+	
+	public static void DailyTask()
+	{
+		System.out.println("MERCURIUS DAILY TASK");
+		try {
+			
+			if (s_iEnableSms!=0)
+			{			
+				if (s_SmsTestReceiver != null) {
+					ArrayList<Forward> aoSmsList = new ArrayList<Forward>();
+					String [] asAddress = s_SmsTestReceiver.split(";");
+					
+					if (asAddress!=null)
+					{
+						for (int iSms = 0; iSms<asAddress.length; iSms++)
+						{
+							Forward oTest1 = new Forward();
+							oTest1.setAddress(asAddress[iSms]);
+							oTest1.setFinalText("Mercurius Test SMS OK");
+							oTest1.setMedia("sms");
+							
+							aoSmsList.add(oTest1);
+						}
+						
+						MercuriusHAL.sendSMS(aoSmsList);
+					}
+				}
+			}
+		}
+		catch(Exception oEx) {
+			System.out.println("DailyTask Exception: " + oEx.toString());
+			oEx.printStackTrace();
 		}
 	}
 	
@@ -170,15 +279,21 @@ public class MercuriusDaemon {
 				System.out.println("Mercurius Daemon: SMS RECIVED: " + oSmsMsg);
 				
 				//DumpSmsMessage(oSmsMsg);
-
-				String sMessage = "FROM: " + oSmsMsg.getOriginator() +"\n";
-				sMessage += oSmsMsg.getText();
 				
-				MercuriusHAL.sendMail(s_SmsMailReceiver, "", sMessage,null);
-				
-				for (ExternalDbSetting oDbSetting : s_aoExternalDbSettings) {
-					System.out.println("Tentativo inserito sms nell'external db " + oDbSetting.m_sDbAddress);
-					SerializeReceivedSms(oDbSetting, oSmsMsg);
+				if (oSmsMsg.getText().toUpperCase().equals("PING")) {
+					System.out.println("Mercurius Daemon: PING from " + oSmsMsg.getOriginator());					
+					MercuriusHAL.sendDirectSMS("+"+oSmsMsg.getOriginator(), "PONG");
+				}
+				else {
+					String sMessage = "FROM: " + oSmsMsg.getOriginator() +"\n";
+					sMessage += oSmsMsg.getText();
+					
+					MercuriusHAL.sendMail(s_SmsMailReceiver, "", sMessage,null);
+					
+					for (ExternalDbSetting oDbSetting : s_aoExternalDbSettings) {
+						System.out.println("Tentativo inserito sms nell'external db " + oDbSetting.m_sDbAddress);
+						SerializeReceivedSms(oDbSetting, oSmsMsg);
+					}
 				}
 			}
 			
@@ -252,6 +367,12 @@ public class MercuriusDaemon {
 				m_sSMSUtilsClass = oMainConfigNode.getChild("SMSUTIL").getText();
 				
 				s_SmsMailReceiver = oMainConfigNode.getChild("SMSMAILRECEIVER").getText();
+				
+				s_SmsTestReceiver = oMainConfigNode.getChild("SMSTESTRECEIVER").getText();
+				
+				s_iEnableMail = Integer.parseInt(oMainConfigNode.getChild("ENABLEMAIL").getText());
+				
+				s_iEnableSms = Integer.parseInt(oMainConfigNode.getChild("ENABLESMS").getText());
 				
 				Element oOutputDatabases = oMainConfigNode.getChild("OUTPUTDATABASES");
 				
@@ -332,65 +453,6 @@ public class MercuriusDaemon {
 	}
 
 
-	private static void SendEmails() {
-		
-		ForwardsRepository oForwardsRepository = new ForwardsRepository();
-		MessagesRepository oMessagesRepository  = new MessagesRepository();
-		
-		List<Forward> aoEMailsToSend = oForwardsRepository.GetMailToSend();
-		
-		if (aoEMailsToSend != null) {
-			for (int iMessaggio = 0; iMessaggio < aoEMailsToSend.size(); iMessaggio++) {
-				Forward oMail = aoEMailsToSend.get(iMessaggio);
-				
-				Message oMessage = oMessagesRepository.Select(oMail.getIdMessage(), Message.class);
-
-				// Verifico Email
-				if (ValidateEmail(oMail.getAddress())) {
-					
-					// Verifico com'è andato l'invio della mail
-					boolean bMailSent = false;
-					try {
-
-						bMailSent = MercuriusHAL.sendMail(oMail.getAddress(), oMessage.getTilte(), oMessage.getMessage(),null);
-					} 
-					catch (MessagingException e) {
-						e.printStackTrace();
-
-						System.out.println("Mercurius Daemon.SendEmails: " + e.getMessage());
-
-					}
-					if (bMailSent) {
-						oMail.setIsSent(true);
-					}
-					
-					oMail.setLastSendOn(new Date());
-					oMail.setRetryCount(oMail.getRetryCount() + 1);
-					
-					oForwardsRepository.Update(oMail);
-				}
-			}
-		} 
-		else {
-			System.out.println("Mercurius Daemon.SendEmails: lista traccia == null. Controllare connessione a DB");
-		}
-	}
-
-
-	private static boolean ValidateEmail(String sAddress) {
-		if (sAddress != null) {
-			// Set the email pattern string
-			Pattern oPattern = Pattern.compile(".+@.+\\.[a-z]+");
-
-			// Match the given string with the pattern
-			Matcher oMatcher = oPattern.matcher(sAddress);
-
-			// check whether match is found
-			return oMatcher.matches();
-		}
-
-		return false;
-	}
 
 	
 	/**

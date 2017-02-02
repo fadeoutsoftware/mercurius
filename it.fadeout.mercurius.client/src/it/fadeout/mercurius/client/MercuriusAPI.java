@@ -17,7 +17,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
 
 /**
  * API for RESTFul Mercurius Services
@@ -502,6 +501,23 @@ public class MercuriusAPI {
 	/**
 	 * Sends a Mail to a group
 	 * @param iGroupId Group Id
+	 * @param sMessage Message Text
+	 * @param sTitle Message Subject
+	 * @return Generated Message Id for tracing, -1 otherwise
+	 */
+	public int sendMailToGroup(int iGroupId, String sMessage, String sTitle, String sSender)  {
+		Message oMessage = new Message();
+		oMessage.setCreationDate(new Date());
+		oMessage.setMessage(sMessage);
+		oMessage.setTilte(sTitle);
+		oMessage.setSender(sSender);
+		
+		return sendMailToGroup(iGroupId, oMessage);
+	}
+	
+	/**
+	 * Sends a Mail to a group
+	 * @param iGroupId Group Id
 	 * @param oMessage Message Entity: please let Message Id and Forwards empty
 	 * @return Generated Message Id for tracing, -1 otherwise
 	 */
@@ -511,7 +527,7 @@ public class MercuriusAPI {
 		try {
 		    Entity<Message> oEntity = Entity.entity(oMessage, "text/xml");
 		    String sPath = "mail/group/" + iGroupId;
-		    PrimitiveResult oResult = m_oTarget.path("rest").path(sPath).request(MediaType.TEXT_XML).put(oEntity).readEntity(PrimitiveResult.class);
+		    PrimitiveResult oResult = m_oTarget.path("rest").path(sPath).request(MediaType.TEXT_XML).header("x-mercurius-sender", oMessage.getSender()).put(oEntity).readEntity(PrimitiveResult.class);
 		    return oResult.IntValue;			
 		}
 		catch(Throwable oEx) {
@@ -543,6 +559,16 @@ public class MercuriusAPI {
 		oMessage.setCreationDate(new Date());
 		oMessage.setMessage(sMessage);
 		oMessage.setTilte(sTitle);
+		return sendMailToContacts(sContacts, oMessage);
+		
+	}
+	
+	public int sendMailToContacts(String sContacts, String sMessage, String sTitle, String sSender) {
+		Message oMessage = new Message();
+		oMessage.setCreationDate(new Date());
+		oMessage.setMessage(sMessage);
+		oMessage.setTilte(sTitle);
+		oMessage.setSender(sSender);
 		return sendMailToContacts(sContacts, oMessage);
 		
 	}
@@ -617,7 +643,7 @@ public class MercuriusAPI {
 		try {
 		    Entity<Message> oEntity = Entity.entity(oMessage, "text/xml");
 		    String sPath = "mail/contacts";
-		    PrimitiveResult oResult = m_oTarget.path("rest").path(sPath).queryParam("contactsids", sContacts).request(MediaType.TEXT_XML).put(oEntity).readEntity(PrimitiveResult.class);
+		    PrimitiveResult oResult = m_oTarget.path("rest").path(sPath).queryParam("contactsids", sContacts).request(MediaType.TEXT_XML).header("x-mercurius-sender", oMessage.getSender()).put(oEntity).readEntity(PrimitiveResult.class);
 		    return oResult.IntValue;			
 		}
 		catch(Throwable oEx) {
@@ -653,6 +679,23 @@ public class MercuriusAPI {
 	}
 	
 	/**
+	 * Sends Mail to a set of direct numbers 
+	 * @param sAddresses String ";" separated containing destination  addresses (ie "test@mail.com;user@gmail.com")
+	 * @param sMessage Message to send
+	 * @param sTitle Title of the message (if set sms will be Title - Message)
+	 * @param sSender Mail Address to use for the sender of the e-mail
+	 * @return Generated Message Id for tracing, -1 otherwise
+	 */
+	public int sendMailDirect(String sAddresses, String sMessage, String sTitle, String sSender) {
+		Message oMessage = new Message();
+		oMessage.setCreationDate(new Date());
+		oMessage.setMessage(sMessage);
+		oMessage.setTilte(sTitle);
+		oMessage.setSender(sSender);
+		return sendMailDirect(sAddresses, oMessage);
+	}
+	
+	/**
 	 * Sends Mail to a set of direct numbers
 	 * @param sAddresses String ";" separated containing destination  addresses (ie "test@mail.com;user@gmail.com")
 	 * @param oMessage Message to send
@@ -664,7 +707,7 @@ public class MercuriusAPI {
 		try {
 		    Entity<Message> oEntity = Entity.entity(oMessage, "text/xml");
 		    String sPath = "mail/direct";
-		    PrimitiveResult oResult = m_oTarget.path("rest").path(sPath).queryParam("addresses", sAddresses).request(MediaType.TEXT_XML).put(oEntity).readEntity(PrimitiveResult.class);
+		    PrimitiveResult oResult = m_oTarget.path("rest").path(sPath).queryParam("addresses", sAddresses).request(MediaType.TEXT_XML).header("x-mercurius-sender", oMessage.getSender()).put(oEntity).readEntity(PrimitiveResult.class);
 		    return oResult.IntValue;			
 		}
 		catch(Throwable oEx) {

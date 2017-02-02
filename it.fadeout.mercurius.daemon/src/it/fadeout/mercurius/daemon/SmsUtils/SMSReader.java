@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.apache.log4j.lf5.LogLevel;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;

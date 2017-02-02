@@ -1,10 +1,11 @@
 package it.fadeout.mercurius.daemon.EMailUtils;
 
+import java.util.Date;
 import java.util.Properties;
+
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.mail.Authenticator;
-
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -25,6 +26,8 @@ import javax.mail.internet.MimeMultipart;
  */
 public class EMailUtils {
 
+	public static boolean UseHtmlMail = true;
+
 	// /**
 	// * Configurazione dell'email utils
 	// */
@@ -32,6 +35,24 @@ public class EMailUtils {
 
 	protected static org.apache.log4j.Logger getLogger() {
 		return org.apache.log4j.Logger.getRootLogger();
+	}
+	
+	public static void SetSender(String sSender)
+	{
+		if (s_oConfiguration!=null)
+		{
+			s_oConfiguration.setSmtpSender(sSender);
+		}
+	}
+	
+	public static String getSender()
+	{
+		if (s_oConfiguration!=null)
+		{
+			return s_oConfiguration.getSmtpSender();
+		}
+		
+		return null;
 	}
 
 	/**
@@ -102,12 +123,6 @@ public class EMailUtils {
 			return bReturn;
 		}
 
-		// // Controllo che ci sia la password
-		// if (sPwd.equals("")) {
-		// getLogger().error("SendMessage sPwd e' vuota, torno false");
-		// return;
-		// }
-
 		if (sFrom == null) {
 			getLogger().error("SendMessage sFrom e' null, torno false");
 			return bReturn;
@@ -125,10 +140,12 @@ public class EMailUtils {
 		}
 
 		try {
+
+			boolean bBCC = false;
+			if (asTo.length>1) bBCC = true;
+
 			// Creating a Mime message with given details.
-			MimeMessage oMsg = createMessage(sUserName, sPwd, sFrom, asTo,
-					sSubject, sBody, asAttachments);
-			// oMsg.setFrom(new InternetAddress(sUserName));
+			MimeMessage oMsg = createMessage(sUserName, sPwd, sFrom, asTo, sSubject, sBody, asAttachments,bBCC);
 
 			// Actual sending of the email message.
 			if (oMsg != null) {
@@ -142,168 +159,43 @@ public class EMailUtils {
 					+ oEx.getStackTrace());
 			getLogger().error(
 					"EMailUtils.SendMessage: " + oEx.getMessage()
-							+ oEx.getStackTrace());
+					+ oEx.getStackTrace());
 			throw oEx;
-			
+
 		}
 
 		return bReturn;
 
 	}
 
-	// /**
-	// * Riceve la posta di un utente e la salva nella cartella opportuna
-	// * @param sUserName
-	// * @param sPwd
-	// * @return
-	// */
-	// protected boolean Receive(String sUserName, String sPwd, String
-	// sUserNameForPath, boolean bReadOnly,int iHasMaxSize,int iMaxSize) {
-	//
-	// // Apro la sessione Pop
-	// Session oSmtpSession = getPopSession(sUserName, sPwd);
-	//
-	// try {
-	//
-	// Logger.Log("EMailUtils.Receive: leggo la posta dell'utente :" + sUserName
-	// + " Usa Max Size = " + iHasMaxSize + " Valore Max Size = " + iMaxSize,
-	// LogLevel.INFO);
-	//
-	// Store oStore = oSmtpSession.getStore("pop3");
-	// oStore.connect();
-	//
-	// // Apro il folder InBox
-	// Folder oFolder = oStore.getDefaultFolder();
-	// oFolder = oFolder.getFolder("Inbox");
-	//
-	// if (bReadOnly){
-	// // Lasciando i messaggi sul server
-	// oFolder.open(Folder.READ_ONLY);
-	// }
-	// else{
-	// // Non lasciando i messaggi sul server
-	// oFolder.open(Folder.READ_WRITE);
-	// }
-	//
-	// // Message oRead = oFolder.getMessage(1);
-	// // String oFrom = oRead.getSubject();
-	// // Logger.Log("Mail 1 subject: " + oFrom, LogLevel.ERROR);
-	//
-	// // Cerco le ultime mail
-	// Message[] oUnread = oFolder.search(new FlagTerm(new
-	// Flags(Flags.Flag.RECENT), false));
-	// // Quanti sono?
-	// int iMsgSize = oUnread.length;
-	//
-	// int iNewMessages = 0;
-	//
-	// // Per tutti i messaggi da leggere
-	// for(int iMsgCount = 0; iMsgCount<iMsgSize;iMsgCount++){
-	// // Saving on disk all downloaded messages in eml format.
-	// //Logger.Log("EMailUtils.Receive: " + ((MimeMessage)
-	// oUnread[iMsgCount]).toString(), LogLevel.ERROR);
-	//
-	// // Ottengo nome univoco del file, che poi è il suo msg Id
-	// String sFileName =
-	// GetMailFileName(((MimeMessage)oUnread[iMsgCount]).getMessageID());
-	//
-	// // Verifico che non sia già nelle mail inviate
-	// File oSentFile = new
-	// File(GetMailSentCompletePath(sUserNameForPath)+sFileName);
-	// if (oSentFile.exists()) continue;
-	//
-	// // Verifico che non sia già nelle mail gestite
-	// File oDoneFile = new
-	// File(GetMailDoneCompletePath(sUserNameForPath)+sFileName);
-	// if (oDoneFile.exists()) continue;
-	//
-	// // Preparo il path completo: {MailHome}\{userMail}\MailReceived
-	// String sCompletePath = GetMailReceivedCompletePath(sUserNameForPath);
-	// sCompletePath += sFileName;
-	//
-	// // Verifico che non sia già nelle mail ricevute
-	// File oReceivedFile = new File(sCompletePath);
-	// if (oReceivedFile.exists()) continue;
-	//
-	// iNewMessages++;
-	//
-	// // Creo il file
-	// OutputStream oStream = new FileOutputStream(sCompletePath);
-	//
-	// // Lo scrivo
-	// oUnread[iMsgCount].writeTo(oStream);
-	//
-	// // Eseguo il flush dello stream
-	// oStream.flush();
-	//
-	// // Chiduo lo stream
-	// oStream.close();
-	//
-	// // Controllo se ho la dimensoine massima degli allegati
-	// if (iHasMaxSize == 1){
-	// // La ho! Controllo la dimensione del file
-	// if (oReceivedFile.length()> iMaxSize*1024){
-	// // E' superiore: sposto la mail come "Done"
-	// Logger.Log("EMailUtils.Receive: trovata mail che supera la dimensione stabilita, la sposto in Done",
-	// LogLevel.WARNING);
-	// sCompletePath = GetMailDoneCompletePath(sUserNameForPath);
-	// sCompletePath += sFileName;
-	// if (!oReceivedFile.renameTo(new File(sCompletePath))){
-	// Logger.Log("Receive: impossibile spostare un file di dimensione superiore al limite stabilito in "
-	// + sCompletePath, LogLevel.ERROR);
-	// }
-	//
-	// }
-	// }
-	// }
-	//
-	// oFolder.close(false);
-	// oStore.close();
-	//
-	// // Finito il ciclo
-	// Logger.Log("Receive: unread Mails for user " + sUserName + " : " +
-	// iNewMessages, LogLevel.ERROR);
-	//
-	// } catch (Exception oEx) {
-	// Logger.Log("EMailUtils.Receive: " + oEx.getMessage(), LogLevel.ERROR);
-	// return false;
-	// }
-	// return true;
-	// }
-
 	/**
 	 * Builds a not shared SMTP session for sending emails.
 	 * 
 	 * @return the not shared SMTP session
 	 */
-	protected static Session getSmtpSession(final String sUserName,
-			final String sPwd, boolean bUseAuthentication) {
+	protected static Session getSmtpSession(final String sUserName, final String sPwd, boolean bUseAuthentication) {
+		
 		getLogger().error("EMailUtils.getSmtpSession: begin");
 		// Properties for sessions can be read from resourse file.
 		// Required data validation.
 		if (s_oConfiguration.getSmtpServer() == null) {
-			getLogger()
-					.error("getSmtpSession: Smtp Server has not been set yet, exiting.");
+			getLogger().error("getSmtpSession: Smtp Server has not been set yet, exiting.");
 			return null;
 		}
 		if (sUserName == null) {
-			getLogger().error(
-					"getSmtpSession: User name has not been set yet, exiting.");
+			getLogger().error("getSmtpSession: User name has not been set yet, exiting.");
 			return null;
 		}
 		if (sPwd == null) {
-			getLogger().error(
-					"getSmtpSession: User pwd has not been set yet, exiting.");
+			getLogger().error("getSmtpSession: User pwd has not been set yet, exiting.");
 			return null;
 		}
 
 		// Properties oSmtpProps = new Properties();
 		// Getting system properties.
 		Properties oSmtpProps = System.getProperties();
-		oSmtpProps.setProperty("mail.smtp.host",
-				s_oConfiguration.getSmtpServer());
-		oSmtpProps.setProperty("mail.smtp.port",
-				s_oConfiguration.getSmtpServerPort());
+		oSmtpProps.setProperty("mail.smtp.host", s_oConfiguration.getSmtpServer());
+		oSmtpProps.setProperty("mail.smtp.port", s_oConfiguration.getSmtpServerPort());
 
 		// Note: Other properties can be set.
 
@@ -330,6 +222,10 @@ public class EMailUtils {
 		return oSession;
 	}
 
+	protected static MimeMessage createMessage(String sUserName, String sPwd, String sFrom, String[] asTo, String sSubject, String sBody, String[] asAttachments) throws MessagingException {
+		return createMessage(sUserName, sPwd, sFrom, asTo, sSubject, sBody,asAttachments,false);
+	}
+
 	/**
 	 * Method for creating a MimeMessage to be sent.
 	 * 
@@ -344,149 +240,173 @@ public class EMailUtils {
 	 * @return a MimeMessage object.
 	 * @throws MessagingException 
 	 */
-	protected static MimeMessage createMessage(String sUserName, String sPwd,
-			String sFrom, String[] asTo, String sSubject, String sBody,
-			String[] asAttachments) throws MessagingException {
+	protected static MimeMessage createMessage(String sUserName, String sPwd, String sFrom, String[] asTo, String sSubject, String sBody, String[] asAttachments, boolean bRecipientsInCC) throws MessagingException {
 		// Creating the MimeMessage.
 		// create a smtp session with authentication.
 
-		MimeMessage oMsg = createMessage(sUserName, sPwd,
-				s_oConfiguration.isUseAuthentication());
+		MimeMessage oMsg = createMessage(sUserName, sPwd, s_oConfiguration.isUseAuthentication());
+		
 		// Setting message fields.
 
-			// From field.
-			if (sFrom != null) {
-				if (sFrom.equals("") == false) {
-					try {
-						oMsg.setFrom(new InternetAddress(sFrom));
-					} catch (AddressException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						getLogger().error("EMailUtils.createMessage: " + e.getMessage());
-						throw e;
-					} catch (MessagingException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						getLogger().error("EMailUtils.createMessage: " + e.getMessage());
-						throw e;
-					}
-				}
-			} else {
-				// From field can be omitted.
-			}
-			// To field.
-			boolean bHasReceiver = false;
-			if (asTo != null) {
-				int iRecvSize = asTo.length;
-				InternetAddress[] aoRecvAddresses = new InternetAddress[iRecvSize];
-				for (int iRecvCounter = 0; iRecvCounter < iRecvSize; iRecvCounter++) {
-					if (asTo[iRecvCounter] != null) {
-						if (asTo[iRecvCounter].equals("") == false) {
-							// The receiver must be not empty, otherwise skip
-							// it.
-							bHasReceiver = true;
-							try {
-								aoRecvAddresses[iRecvCounter] = new InternetAddress(
-										asTo[iRecvCounter]);
-							} catch (AddressException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-								getLogger().error("EMailUtils.createMessage: " + e.getMessage());
-								throw e;
-							}
-						}
-					}
-				}
-				// aoRecvAddresses = new InternetAddress[]{new
-				// InternetAddress("l.platania@fadeout.biz")};
+		// From field.
+		if (sFrom != null) {
+			if (sFrom.equals("") == false) {
 				try {
-					oMsg.setRecipients(Message.RecipientType.TO, aoRecvAddresses);
+					oMsg.setFrom(new InternetAddress(sFrom));
+				} catch (AddressException e) {
+					e.printStackTrace();
+					getLogger().error("EMailUtils.createMessage: " + e.getMessage());
+					throw e;
 				} catch (MessagingException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 					getLogger().error("EMailUtils.createMessage: " + e.getMessage());
 					throw e;
 				}
 			}
-			if (bHasReceiver == false) {
-				// If the message has not a receiver, it is useless
-				// to build it, just return an null message.
-				return null;
-			}
-
-			// Email subject.
-			if (sSubject != null) {
-				if (sSubject.equals("") == false) {
-					try {
-						oMsg.setSubject(sSubject);
-					} catch (MessagingException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						getLogger().error("EMailUtils.createMessage: " + e.getMessage());
-						throw e;
+		} else {
+			// From field can be omitted.
+		}
+		// To field.
+		boolean bHasReceiver = false;
+		
+		if (asTo != null) {
+			
+			int iRecvSize = asTo.length;
+			InternetAddress[] aoRecvAddresses = new InternetAddress[iRecvSize];
+			
+			for (int iRecvCounter = 0; iRecvCounter < iRecvSize; iRecvCounter++) {
+				
+				if (asTo[iRecvCounter] != null) {
+					
+					if (asTo[iRecvCounter].equals("") == false) {
+						
+						// The receiver must be not empty, otherwise skip
+						// it.
+						bHasReceiver = true;
+						
+						try {
+							aoRecvAddresses[iRecvCounter] = new InternetAddress(asTo[iRecvCounter]);
+						} catch (AddressException e) {
+							e.printStackTrace();
+							getLogger().error("EMailUtils.createMessage: " + e.getMessage());
+							throw e;
+						}
 					}
 				}
-			} else {
-				// Subject field can be omitted.
 			}
-			// Body.
-			if (sBody != null) {
-				if (sBody.equals("") == false) {
-					Multipart oMimeBody = new MimeMultipart();
-					MimeBodyPart oBodyPart = new MimeBodyPart();
-					try {
-						oBodyPart.setText(sBody);
-						oMimeBody.addBodyPart(oBodyPart);
-					} catch (MessagingException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						getLogger().error("EMailUtils.createMessage: " + e.getMessage());
-						throw e;
+			// aoRecvAddresses = new InternetAddress[]{new
+			// InternetAddress("l.platania@fadeout.biz")};
+			try {
+				
+				if (bRecipientsInCC==false)
+				{
+					oMsg.setRecipients(Message.RecipientType.TO, aoRecvAddresses);
+				}
+				else
+				{
+					oMsg.setRecipients(Message.RecipientType.BCC, aoRecvAddresses);
+				}
+
+			} 
+			catch (MessagingException e) {
+				e.printStackTrace();
+				getLogger().error("EMailUtils.createMessage: " + e.getMessage());
+				throw e;
+			}
+		}
+		if (bHasReceiver == false) {
+			// If the message has not a receiver, it is useless
+			// to build it, just return an null message.
+			return null;
+		}
+
+		// Email subject.
+		if (sSubject != null) {
+			
+			if (sSubject.equals("") == false) {
+				
+				try {
+					oMsg.setSubject(sSubject);
+				} catch (MessagingException e) {
+					e.printStackTrace();
+					getLogger().error("EMailUtils.createMessage: " + e.getMessage());
+					throw e;
+				}
+			}
+		} 
+		else {
+			// Subject field can be omitted.
+		}
+		// Body.
+		if (sBody != null) {
+			
+			if (sBody.equals("") == false) {
+				
+				Multipart oMimeBody = new MimeMultipart();
+				MimeBodyPart oBodyPart = new MimeBodyPart();
+				
+				try {
+					if (UseHtmlMail == false) {
+						System.out.println("Sending Plain Text Mail");
+						oBodyPart.setText(sBody);	
 					}
-					
+					else {
+						System.out.println("Sending Html Mail");
+						oBodyPart.setContent(sBody, "text/html; charset=utf-8");
+					}
 
-					// Attachments.
-					if (asAttachments != null) {
-						for (String asAttachPath : asAttachments) {
-							MimeBodyPart oAttachmentPart = new MimeBodyPart();
+					oMimeBody.addBodyPart(oBodyPart);
+				} catch (MessagingException e) {
+					e.printStackTrace();
+					getLogger().error("EMailUtils.createMessage: " + e.getMessage());
+					throw e;
+				}
 
-							DataSource oAttachmentSource = new FileDataSource(
-									asAttachPath);
 
-							try {
-								oAttachmentPart
-										.setDataHandler(new javax.activation.DataHandler(
-												oAttachmentSource));
-								oAttachmentPart.setFileName(oAttachmentSource
-										.getName());
-								// add the attachment to the whole message.
-								oMimeBody.addBodyPart(oAttachmentPart);
-							} catch (MessagingException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-								getLogger().error("EMailUtils.createMessage: " + e.getMessage());
-								throw e;
-							}
+				// Attachments.
+				if (asAttachments != null) {
+					for (String asAttachPath : asAttachments) {
+						MimeBodyPart oAttachmentPart = new MimeBodyPart();
+
+						DataSource oAttachmentSource = new FileDataSource(asAttachPath);
+
+						try {
+							oAttachmentPart.setDataHandler(new javax.activation.DataHandler(oAttachmentSource));
+							oAttachmentPart.setFileName(oAttachmentSource.getName());
+							// add the attachment to the whole message.
+							oMimeBody.addBodyPart(oAttachmentPart);
 							
+						} catch (MessagingException e) {
+							e.printStackTrace();
+							getLogger().error("EMailUtils.createMessage: " + e.getMessage());
+							throw e;
 						}
 
 					}
-					// Adding the body to the message.
-					try {
-						oMsg.setContent(oMimeBody);
-					} catch (MessagingException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						getLogger().error("EMailUtils.createMessage: " + e.getMessage());
-						throw e;
-					}
+
 				}
-			} else {
-				// Body field can be omitted.
+				// Adding the body to the message.
+				try {
+					oMsg.setContent(oMimeBody);
+				} catch (MessagingException e) {
+					e.printStackTrace();
+					getLogger().error("EMailUtils.createMessage: " + e.getMessage());
+					throw e;
+				}
+
+				// Sent Date
+				try {
+					oMsg.setSentDate(new Date());
+				} catch (MessagingException e) {
+					e.printStackTrace();
+				}
 			}
-//		} catch (Exception oEx) {
-//			getLogger().error("EMailUtils.createMessage: " + oEx.getMessage());
-//		}
+		} else {
+			// Body field can be omitted.
+		}
+		//		} catch (Exception oEx) {
+		//			getLogger().error("EMailUtils.createMessage: " + oEx.getMessage());
+		//		}
 		return oMsg;
 
 	}
@@ -497,24 +417,21 @@ public class EMailUtils {
 	 * 
 	 * @return a MimeMessage object.
 	 */
-	protected static MimeMessage createMessage(String sUserName, String sPwd,
-			boolean bUseAuthentication) {
-		Session oSmtpSession = getSmtpSession(sUserName, sPwd,
-				bUseAuthentication);
+	protected static MimeMessage createMessage(String sUserName, String sPwd,boolean bUseAuthentication) {
+		Session oSmtpSession = getSmtpSession(sUserName, sPwd, bUseAuthentication);
 		MimeMessage oMsg = new MimeMessage(oSmtpSession);
+
 		return oMsg;
 
 	}
 
-	public static boolean SendMessage(String[] asTo, String sSubject,
-			String sBody, String[] asAttachments) throws MessagingException {
-		// TODO Auto-generated method stub
+	public static boolean SendMessage(String[] asTo, String sSubject, String sBody, String[] asAttachments) throws MessagingException {
+
 		String sUserName = s_oConfiguration.getSmtpUser();
 		String sPwd = s_oConfiguration.getSmtpPwd();
 		String sFrom = s_oConfiguration.getSmtpSender();
 
-		return SendMessage(sUserName, sPwd, sFrom, asTo, sSubject, sBody,
-				asAttachments);
+		return SendMessage(sUserName, sPwd, sFrom, asTo, sSubject, sBody, asAttachments);
 	}
 
 }
